@@ -60,15 +60,31 @@ module.exports = {
                 const params = Object.assign({}, ctx.params);
 
                 const server = await ctx.call('v1.mongodb.servers.resolve', {
-                    id: params.id
+                    id: params.id,
+                    populate: ['users']
                 });
 
-                let uri = `mongodb://${server.username}:${server.password}@${server.hostname}:${server.port}/admin`
+
+                let authPart = '';
+
+                const rootUser = server.users.find((user) => {
+                    return user.roles.includes('root')
+                })
+
+                if (rootUser) {
+                    authPart = `${rootUser.username}:${rootUser.password}@`
+                }
+                let dbPart = '';
+                if (server.database) {
+                    dbPart = `${server.database.name}`
+                }
+
+                let uri = `mongodb://${authPart}${server.hostname}:${server.port}/${dbPart}?serverSelectionTimeoutMS=150000`
 
                 if (false && server.replicaSet && server.replicaSet != '') {
-                    uri += `?replicaSet=${server.replicaSet}`
+                    uri += `&replicaSet=${server.replicaSet}`
                 } else {
-                    uri += `?directConnection=true`
+                    uri += `&directConnection=true`
                 }
 
                 await this.createClient(server.name, uri);
@@ -88,33 +104,29 @@ module.exports = {
         },
         replSetInitiate: {
             params: {
-                id: { type: "string", optional: false },
-                member: { type: "string", optional: false },
+                id: { type: "string", optional: false }
             },
             async handler(ctx) {
                 const params = Object.assign({}, ctx.params);
-                const { name, replicaSet, hostname, port } = await ctx.call('v1.mongodb.servers.resolve', {
+
+
+                const replicaset = await ctx.call('v1.mongodb.replicasets.resolve', {
                     id: params.id,
-                    fields: ['name', 'replicaSet', 'hostname', 'port']
+                    populate: ['servers']
                 })
-                const db = this.getClient(name).db('admin')
+                const initServer = replicaset.servers[0]
+
+                const db = this.getClient(initServer.name).db('admin')
+
                 return db.command({
                     replSetInitiate: {
-                        _id: replicaSet,
-                        members: [{
-                            _id: 0,
-                            host: `${hostname}:${port}`
-                        }, {
-
-                            _id: 1,
-                            host: 'mongodb-0.mongodb.dev.svc.cloud.one-host.ca'
-                        }, {
-                            _id: 2,
-                            host: 'mongodb-1.mongodb.dev.svc.cloud.one-host.ca'
-                        }, {
-                            _id: 3,
-                            host: 'mongodb-2.mongodb.dev.svc.cloud.one-host.ca'
-                        }]
+                        _id: replicaset.name,
+                        members: replicaset.servers.map(({ hostname, port }, _id) => {
+                            return {
+                                _id,
+                                host: `${hostname}:${port}`
+                            }
+                        })
                     }
                 })
             }
@@ -136,6 +148,7 @@ module.exports = {
                 })
             }
         },
+        
         replSetGetConfig: {
             params: {
                 id: { type: "string", optional: false },
@@ -166,6 +179,24 @@ module.exports = {
                 const db = this.getClient(name).db('admin')
                 return db.command({
                     replSetGetConfig: 1
+                })
+            }
+        },
+        replSetStepDown: {
+            params: {
+                id: { type: "string", optional: false },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+                const { name, replicaSet, hostname, port } = await ctx.call('v1.mongodb.servers.resolve', {
+                    id: params.id,
+                    fields: ['name', 'replicaSet', 'hostname', 'port']
+                })
+                const db = this.getClient(name).db('admin')
+                return db.command({
+                    replSetStepDown: 120,
+                    secondaryCatchUpPeriodSecs: 15,
+                    force: true
                 })
             }
         },
@@ -457,8 +488,12 @@ module.exports = {
             }
 
             const client = await MongoClient.connect(uri);
-            this.clients.set(name, client)
 
+
+            this.clients.set(name, client)
+            client.on('error', (err) => {
+                console.log('error', uri, err)
+            })
 
             return client
         }
@@ -478,7 +513,7 @@ module.exports = {
             res.forEach(server => {
                 this.actions.createClient({
                     id: server.id
-                })
+                }).catch(() => { })
             });
         })
     },

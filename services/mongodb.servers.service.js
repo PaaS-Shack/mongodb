@@ -45,13 +45,32 @@ module.exports = {
                 type: "number",
                 required: false
             },
-            username: {
-                type: "string",
-                required: false
+
+
+            users: {
+                type: "array",
+                items: { type: "string", empty: false },
+                default: [],
+                populate: {
+                    action: "v1.mongodb.users.resolve",
+                },
             },
-            password: {
+            databases: {
+                type: "array",
+                items: { type: "string", empty: false },
+                default: [],
+                populate: {
+                    action: "v1.mongodb.databases.resolve",
+                },
+            },
+            replicaset: {
                 type: "string",
-                required: false
+                required: false,
+                empty: false,
+                populate: {
+                    action: "v1.mongodb.replicasets.resolve",
+                    params: {}
+                }
             },
             zone: {
                 type: "string",

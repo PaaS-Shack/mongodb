@@ -34,15 +34,45 @@ module.exports = {
 
             database: {
                 type: "string",
-                required: true,
+                required: false,
+                empty: false,
+                populate: {
+                    action: "v1.mongodb.databases.resolve",
+                },
+            },
+
+            server: {
+                type: "string",
+                required: false,
                 empty: false,
 
                 populate: {
-                    action: "v1.mongodb.databases.resolve",
-                    params: {
-                        //fields: ["id", "username", "fullName", "avatar"]
-                    }
+                    action: "v1.mongodb.server.resolve",
                 },
+            },
+
+            replicaset: {
+                type: "string",
+                required: false,
+                empty: false,
+
+                populate: {
+                    action: "v1.mongodb.replicasets.resolve",
+                },
+            },
+            roles: {
+                type: 'array',
+                items: {
+                    type: 'enum',
+                    values: [
+                        'read', 'readWrite', 'dbAdmin', 'dbOwner',
+                        'userAdmin', 'clusterAdmin', 'clusterManager', 'clusterMonitor',
+                        'hostManager', 'backup', 'restore', 'readAnyDatabase', 'readWriteAnyDatabase',
+                        'userAdminAnyDatabase', 'dbAdminAnyDatabase', 'root'
+                    ],
+                    default: 'dbAdmin'
+                },
+                required: false
             },
 
             username: {

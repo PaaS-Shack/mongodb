@@ -38,15 +38,31 @@ module.exports = {
             },
 
             server: {
-				type: "string",
-				required: true,
-				empty: false,
-				populate: {
-					action: "v1.mongodb.servers.resolve",
-					params: {}
-				}
-			},
-
+                type: "string",
+                required: false,
+                empty: false,
+                populate: {
+                    action: "v1.mongodb.servers.resolve",
+                    params: {}
+                }
+            },
+            replicaset: {
+                type: "string",
+                required: false,
+                empty: false,
+                populate: {
+                    action: "v1.mongodb.servers.resolve",
+                    params: {}
+                }
+            },
+            users: {
+                type: "array",
+                items: { type: "string", empty: false },
+                default: [],
+                populate: {
+                    action: "v1.mongodb.users.resolve",
+                },
+            },
 
             options: { type: "object" },
             createdAt: {
@@ -127,8 +143,8 @@ module.exports = {
             },
             async handler(ctx) {
                 const params = Object.assign({}, ctx.params);
-                
-                
+
+
             }
         },
     },
@@ -137,13 +153,13 @@ module.exports = {
      * mongodb.databases
      */
     events: {
-       
+
     },
     /**
      * Methods
      */
     methods: {
-       
+
     },
     /**
      * Service created lifecycle event handler
