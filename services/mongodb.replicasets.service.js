@@ -36,6 +36,14 @@ module.exports = {
                 type: "string",
                 required: true,
             },
+            srv: {
+                type: "string",
+                required: true,
+            },
+            port: {
+                type: "string",
+                required: true,
+            },
 
 
             servers: {
@@ -65,7 +73,7 @@ module.exports = {
                     action: "v1.mongodb.databases.resolve",
                 },
             },
-            
+
 
             options: { type: "object" },
             createdAt: {
@@ -261,7 +269,7 @@ module.exports = {
                     id: primaryServer.id,
                     config: config
                 })
-                
+
                 await ctx.call('v1.mongodb.servers.update', {
                     id: server.id,
                     replicaset: null
@@ -286,20 +294,26 @@ module.exports = {
      */
     events: {
 
-        async "mongodb.replicasets.created"(ctx) {
-            const { id } = ctx.params.data;
+        async "mongodb.users.created"(ctx) {
+            const user = ctx.params.data;
 
 
 
 
         },
-        async "mongodb.replicasets.updated"(ctx) {
-            const { id } = ctx.params.data;
+        async "mongodb.users.updated"(ctx) {
+            const user = ctx.params.data;
 
 
         },
-        async "mongodb.replicasets.removed"(ctx) {
-            const { id } = ctx.params.data;
+        async "mongodb.users.removed"(ctx) {
+            const user = ctx.params.data;
+            if (user.replicaset) {
+                const replicaset = await this.resolveEntities(ctx, {
+                    id: user.replicaset
+                })
+                
+            }
 
         },
     },

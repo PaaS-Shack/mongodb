@@ -11,11 +11,14 @@ const { MoleculerClientError } = require("moleculer").Errors;
  * attachments of addons service
  */
 module.exports = {
-    name: "mongodb.databases",
+    name: "mongodb.provisions",
     version: 1,
 
     mixins: [
-        DbService({})
+        DbService({}),
+		Membership({
+			permissions: 'mongodb.provisions'
+		})
     ],
 
     /**
@@ -28,37 +31,32 @@ module.exports = {
      * Service settings
      */
     settings: {
-        rest: "/v1/mongodb-databases/",
+        rest: "/v1/mongodb-provisions/",
 
         fields: {
 
-            name: {
+
+            database: {
                 type: "string",
                 required: true,
-            },
-
-            server: {
-                type: "string",
-                required: false,
                 empty: false,
                 populate: {
-                    action: "v1.mongodb.servers.resolve",
+                    action: "v1.mongodb.databases.resolve",
                     params: {}
                 }
             },
             replicaset: {
                 type: "string",
-                required: false,
+                required: true,
                 empty: false,
                 populate: {
                     action: "v1.mongodb.replicasets.resolve",
                     params: {}
                 }
             },
-            users: {
-                type: "array",
-                items: { type: "string", empty: false },
-                default: [],
+            user: {
+                type: "string",
+                required: true,
                 populate: {
                     action: "v1.mongodb.users.resolve",
                 },

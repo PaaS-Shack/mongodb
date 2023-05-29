@@ -148,7 +148,7 @@ module.exports = {
                 })
             }
         },
-        
+
         replSetGetConfig: {
             params: {
                 id: { type: "string", optional: false },
@@ -424,7 +424,7 @@ module.exports = {
         usersInfo: {
             params: {
                 id: { type: "string", optional: false },
-                user: { type: "string", optional: false },
+                db: { type: "string", default: 'admin', optional: true },
             },
             async handler(ctx) {
                 const params = Object.assign({}, ctx.params);
@@ -432,9 +432,9 @@ module.exports = {
                     id: params.id,
                     fields: ['name']
                 })
-                const db = this.getClient(name).db('admin')
+                const db = this.getClient(name).db(params.db)
                 return db.command({
-                    top: 1
+                    usersInfo: 1
                 })
             }
         },
@@ -443,6 +443,7 @@ module.exports = {
                 id: { type: "string", optional: false },
                 username: { type: "string", optional: false },
                 password: { type: "string", optional: false },
+                role: { type: "string", optional: false },
                 database: { type: "string", optional: false },
             },
             async handler(ctx) {
@@ -451,14 +452,75 @@ module.exports = {
                     id: params.id,
                     fields: ['name']
                 })
-                const db = this.getClient(name).db('admin')
+                const db = this.getClient(name).db(params.database)
                 return db.command({
-                    createUser: username,
-                    pwd: password,
+                    createUser: params.username,
+                    pwd: params.password,
                     roles: [{
-                        role: 'dbOwner',
-                        db: database
+                        role: params.role,
+                        db: params.database
                     }]
+                })
+            }
+        },
+        dropUser: {
+            params: {
+                id: { type: "string", optional: false },
+                username: { type: "string", optional: false },
+                database: { type: "string", optional: false },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+                const { name } = await ctx.call('v1.mongodb.servers.resolve', {
+                    id: params.id,
+                    fields: ['name']
+                })
+
+                const db = this.getClient(name).db(params.database)
+
+                return db.command({
+                    dropUser: params.username,
+                    writeConcern: { w: "majority", wtimeout: 5000 }
+                })
+            }
+        },
+        
+        dropDatabase: {
+            params: {
+                id: { type: "string", optional: false },
+                database: { type: "string", optional: false },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+                const { name } = await ctx.call('v1.mongodb.servers.resolve', {
+                    id: params.id,
+                    fields: ['name']
+                })
+
+                const db = this.getClient(name).db(params.database)
+
+                return db.command({
+                    dropDatabase: 1
+                })
+            }
+        },
+        dropAllUsersFromDatabase: {
+            params: {
+                id: { type: "string", optional: false },
+                database: { type: "string", optional: false },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+                const { name } = await ctx.call('v1.mongodb.servers.resolve', {
+                    id: params.id,
+                    fields: ['name']
+                })
+
+                const db = this.getClient(name).db(params.database)
+
+                return db.command({
+                    dropAllUsersFromDatabase: 1,
+                    writeConcern: { w: "majority" }
                 })
             }
         },
