@@ -36,7 +36,7 @@ module.exports = {
             }
 
             const uri = await this.createUri(ctx, server);
-            console.log(uri)
+
             // create client
             const client = await MongoClient.connect(uri);
 
@@ -50,8 +50,12 @@ module.exports = {
                 });
             });
 
-            // connect
-            // await client.connect();
+            this.logger.info(`mongodb client created for server ${server.id}`);
+
+            // create timeout to close client
+            client._timeout = setTimeout(async () => {
+                await this.closeClient(ctx, server);
+            }, 150000);// 2.5 minutes
 
             return client;
         },
@@ -119,7 +123,11 @@ module.exports = {
             if (this.clients.has(server.id)) {
                 const client = this.clients.get(server.id);
                 await client.close();
+                clearTimeout(client._timeout)
                 this.clients.delete(server.id);
+
+                this.logger.info(`mongodb client closed for server ${server.id}`);
+
                 return client;
             }
 

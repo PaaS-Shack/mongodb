@@ -148,7 +148,7 @@ module.exports = {
                 await ctx.call('v1.mongodb.users.createNotFound', {
                     id: user.id
                 })
-
+                this.logger.info(`provisioned mongodb user ${user.name} and database ${database.name}`);
                 // return provision id
                 return provision.id;
             }
@@ -182,6 +182,7 @@ module.exports = {
                     id: provision.database.server,
                 });
 
+                this.logger.info(`packed mongodb provision ${provision.id}`);
 
                 return {
                     MONGO_USERNAME: provision.user.name,
@@ -230,6 +231,7 @@ module.exports = {
                     this.logger.error(err);
                 });
 
+                this.logger.info(`deprovisioned mongodb provision ${provision.id}`);
 
                 // delete provision
                 return this.removeEntity(ctx, {

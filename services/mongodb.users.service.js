@@ -286,6 +286,7 @@ module.exports = {
                     throw new MoleculerClientError("mongodb user not found", 404);
                 }
 
+                this.logger.info(`creating mongodb user ${user.name} not found`);
 
                 for (const id of user.databases) {
 
@@ -358,6 +359,8 @@ module.exports = {
                             this.logger.error(error);
                         });
                 }
+
+                this.logger.info(`dropped mongodb user ${user.name}`);
 
                 // delete mongodb user
                 return this.removeEntity(ctx, {
@@ -456,6 +459,8 @@ module.exports = {
                     await this.grantRoles(ctx, user, database.server, database, params.roles);
                 }
 
+                this.logger.info(`granted mongodb user ${user.name} roles ${params.roles}`);
+
                 // return mongodb user
                 return user;
             }
@@ -553,6 +558,8 @@ module.exports = {
                     await this.revokeRoles(ctx, user, database.server, database, params.roles);
                 }
 
+this.logger.info(`revoked mongodb user ${user.name} roles ${params.roles}`);
+
                 // return mongodb user
                 return user;
             }
@@ -616,6 +623,8 @@ module.exports = {
             // get mongodb user
             const dbUser = await this.getUserInfo(ctx, user, server, database);
 
+this.logger.info(`Mongodb command createUser ${user.name}`);
+
             // return mongodb user
             return dbUser;
         },
@@ -653,6 +662,8 @@ module.exports = {
             // get mongodb user
             const dbUser = await this.getUserInfo(ctx, user, server, database);
 
+this.logger.info(`Mongodb command updateUser ${user.name}`);
+
             // return mongodb user
             return dbUser;
         },
@@ -678,6 +689,8 @@ module.exports = {
             const result = await db.command({
                 dropUser: user.name,
             });
+
+this.logger.info(`Mongodb command dropUser ${user.name}`);
 
             // return mongodb user
             return result;
@@ -737,7 +750,7 @@ module.exports = {
                     }
                 }),
             });
-
+            this.logger.info(`Mongodb command grantRolesToUser ${user.name} ${roles}`);
             // return mongodb user
             return result;
         },
@@ -770,6 +783,7 @@ module.exports = {
                     }
                 }),
             });
+            this.logger.info(`Mongodb command revokeRolesFromUser ${user.name} ${roles}`);
 
             // return mongodb user
             return result;

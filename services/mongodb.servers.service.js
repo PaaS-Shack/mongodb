@@ -163,6 +163,7 @@ module.exports = {
 
                 // lookup any server if not found
                 if (!server) {
+                    this.logger.warn(`no server found for zone ${params.zone}, looking up any server`);
                     server = await this.findEntity(null, {});
                 }
 
@@ -702,6 +703,8 @@ module.exports = {
                     dropConnections: 1,
                     hostAndPort: [`${params.host}:${params.port}`]
                 });
+
+                this.logger.info(`dropped mongodb server ${server.id} connection ${params.host}:${params.port}`);
 
                 return connections;
             }
