@@ -145,7 +145,6 @@ module.exports = {
 
             // close all clients
             for (const [id, client] of this.clients) {
-                console.log(id)
                 await client.close();
                 this.clients.delete(id);
             }
