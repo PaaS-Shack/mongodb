@@ -1,21 +1,27 @@
 "use strict";
 
+
+
 const DbService = require("db-mixin");
 const Membership = require("membership-mixin");
-const generator = require('generate-password');
-const Cron = require('cron-mixin');
+const ConfigLoader = require("config-mixin");
 
 const { MoleculerClientError } = require("moleculer").Errors;
 
+
+
 /**
- * attachments of addons service
+ * this service maanges mongodb users
  */
 module.exports = {
     name: "mongodb.users",
     version: 1,
 
     mixins: [
-        DbService({})
+        DbService({
+            permissions: "mongodb.users",
+        }),
+        ConfigLoader(['mongodb.**'])
     ],
 
     /**
@@ -24,95 +30,33 @@ module.exports = {
     dependencies: [
 
     ],
+
     /**
      * Service settings
      */
     settings: {
-        rest: "/v1/mongodb-users/",
+        rest: "/v1/mongodb/servers/",
 
         fields: {
 
-            database: {
-                type: "string",
-                required: false,
-                empty: false,
-                populate: {
-                    action: "v1.mongodb.databases.resolve",
-                },
-            },
 
-            server: {
-                type: "string",
-                required: false,
-                empty: false,
-
-                populate: {
-                    action: "v1.mongodb.server.resolve",
-                },
-            },
-
-            replicaset: {
-                type: "string",
-                required: false,
-                empty: false,
-
-                populate: {
-                    action: "v1.mongodb.replicasets.resolve",
-                },
-            },
-            roles: {
-                type: 'array',
-                items: {
-                    type: 'enum',
-                    values: [
-                        'read', 'readWrite', 'dbAdmin', 'dbOwner',
-                        'userAdmin', 'clusterAdmin', 'clusterManager', 'clusterMonitor',
-                        'hostManager', 'backup', 'restore', 'readAnyDatabase', 'readWriteAnyDatabase',
-                        'userAdminAnyDatabase', 'dbAdminAnyDatabase', 'root'
-                    ],
-                    default: 'dbAdmin'
-                },
-                required: false
-            },
-
-            username: {
-                type: "string",
-                required: true
-            },
-            password: {
-                type: "string",
-                required: true
-            },
-
-
-            options: { type: "object" },
-            createdAt: {
-                type: "number",
-                readonly: true,
-                onCreate: () => Date.now(),
-            },
-            updatedAt: {
-                type: "number",
-                readonly: true,
-                onUpdate: () => Date.now(),
-            },
-            deletedAt: {
-                type: "number",
-                readonly: true,
-                hidden: "byDefault",
-                onRemove: () => Date.now(),
-            },
+            ...DbService.FIELDS,// inject dbservice fields
         },
-
         defaultPopulates: [],
 
         scopes: {
-            notDeleted: { deletedAt: null },
+            ...DbService.SCOPE,
         },
 
-        defaultScopes: ["notDeleted"]
-    },
+        defaultScopes: [
+            ...DbService.DSCOPE,
+        ],
 
+        // default init config settings
+        config: {
+
+        }
+    },
 
     /**
      * Actions
@@ -120,86 +64,35 @@ module.exports = {
 
     actions: {
 
-        create: {
-            permissions: ['mongodb.users.create'],
-        },
-        list: {
-            permissions: ['mongodb.users.list'],
-            params: {}
-        },
-
-        find: {
-            rest: "GET /find",
-            permissions: ['mongodb.users.find'],
-            params: {}
-        },
-
-        count: {
-            rest: "GET /count",
-            permissions: ['mongodb.users.count'],
-            params: {}
-        },
-
-        get: {
-            needEntity: true,
-            permissions: ['mongodb.users.get'],
-        },
-
-        update: {
-            rest: false,
-            needEntity: true,
-            permissions: ['mongodb.users.update'],
-        },
-
-        replace: false,
-
-        remove: {
-            needEntity: true,
-            permissions: ['mongodb.users.remove'],
-
-        },
-        tally: {
-            params: {
-
-            },
-            async handler(ctx) {
-                const params = Object.assign({}, ctx.params);
-
-
-            }
-        },
     },
 
     /**
-     * mongodb.users
+     * Events
      */
     events: {
 
     },
+
     /**
      * Methods
      */
     methods: {
 
     },
+
     /**
      * Service created lifecycle event handler
      */
-    created() {
-
-    },
+    created() { },
 
     /**
      * Service started lifecycle event handler
      */
-    async started() {
+    started() { },
 
-    },
 
     /**
      * Service stopped lifecycle event handler
      */
-    stopped() {
-
-    }
+    stopped() { }
 };
