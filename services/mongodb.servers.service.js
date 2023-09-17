@@ -100,6 +100,12 @@ module.exports = {
                 }
             },
 
+            // mongodb server zone
+            zone: {
+                type: "string",
+                required: true,
+                description: "mongodb server zone",
+            },
 
 
 
@@ -128,6 +134,47 @@ module.exports = {
      */
 
     actions: {
+        /**
+         * loopup server for zone 
+         * 
+         * @actions
+         * @param {String} zone - zone to lookup
+         * 
+         * @returns {Object} server - the server object
+         */
+        lookup: {
+            rest: false,// disable rest access because this is a lookup action
+            params: {
+                zone: {
+                    type: "string",
+                    optional: false,
+                    description: "zone to lookup",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                let server = await this.findEntity(null, {
+                    query: {
+                        zone: params.zone,
+                    }
+                });
+
+                // lookup any server if not found
+                if (!server) {
+                    server = await this.findEntity(null, {});
+                }
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                return server;
+            }
+        },
+
         /**
          * get build info
          * 

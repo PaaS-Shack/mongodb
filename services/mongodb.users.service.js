@@ -311,6 +311,62 @@ module.exports = {
         },
 
         /**
+         * drop user
+         * 
+         * @actions
+         * @param {String} id - mongodb user id
+         * 
+         * @returns {Object} mongodb user
+         */
+        drop: {
+            rest: {
+                method: "POST",
+                path: "/:id/drop",
+            },
+            permissions: ['mongodb.users.drop'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb user id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get mongodb user
+                const user = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                // check if mongodb user exists
+                if (!user) {
+                    throw new MoleculerClientError("mongodb user not found", 404);
+                }
+
+                // loop over db servers and get user info
+                for (const id of user.databases) {
+
+                    // resolve server object
+                    const database = await ctx.call('v1.mongodb.databases.resolve', {
+                        id: id,
+                        populate: ['server']
+                    });
+
+                    await this.deleteUser(ctx, user, database.server, database)
+                        .catch((error) => {
+                            this.logger.error(error);
+                        });
+                }
+
+                // delete mongodb user
+                return this.removeEntity(ctx, {
+                    id: params.id,
+                });
+            }
+        },
+
+        /**
          * grant mongodb user roles
          * 
          * @actions

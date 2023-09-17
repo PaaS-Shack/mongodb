@@ -9,6 +9,7 @@ const ConfigLoader = require("config-mixin");
 const { MoleculerClientError } = require("moleculer").Errors;
 
 
+const MongoMixin = require("../mixins/mongodb.mixin");
 
 /**
  * this service maanges mongodb databases
@@ -21,7 +22,8 @@ module.exports = {
         DbService({
             permissions: "mongodb.databases",
         }),
-        ConfigLoader(['mongodb.**'])
+        ConfigLoader(['mongodb.**']),
+        MongoMixin,
     ],
 
     /**
@@ -419,7 +421,49 @@ module.exports = {
             }
         },
 
+        /**
+         * drop database
+         * 
+         * @actions
+         * @param {String} id - mongodb database id
+         * 
+         * @returns {Object} database object
+         */
+        drop: {
+            rest: {
+                method: "DELETE",
+                path: "/:id/drop",
+            },
+            permissions: ['mongodb.servers.drop'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb database id",
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+                // get database
+                const database = await this.resolveEntities(null, {
+                    id: params.id,
+                    populate: ["server"],
+                })
 
+                // get client
+                const client = await this.getClient(ctx, database.server);
+
+                // drop database
+                const result = await client.db(database.name).dropDatabase()
+                    .catch((error) => {
+                        this.logger.error(error);
+                    });;
+
+                return this.removeEntity(ctx, {
+                    id: params.id,
+                });
+            }
+        },
     },
 
     /**
