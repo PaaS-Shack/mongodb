@@ -259,7 +259,7 @@ module.exports = {
         collections: {
             rest: {
                 method: "GET",
-                path: "/:id/collections",
+                path: "/:id/databases/:database/collections",
             },
             permissions: ['mongodb.servers.collections'],
             params: {
@@ -270,7 +270,7 @@ module.exports = {
                 },
                 database: {
                     type: "string",
-                    optional: true,
+                    optional: false,
                     description: "mongodb database name",
                 }
             },
@@ -334,6 +334,329 @@ module.exports = {
                 const users = await client.db("admin").command({ usersInfo: 1 });
 
                 return users;
+            }
+        },
+
+        /**
+         * list server roles
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server roles
+         */
+        roles: {
+            rest: {
+                method: "GET",
+                path: "/:id/roles",
+            },
+            permissions: ['mongodb.servers.roles'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await ctx.call("v1.mongodb.servers.resolve", params);
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", { id: params.id });
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server roles
+                const roles = await client.db("admin").command({ rolesInfo: 1 });
+
+                return roles;
+            }
+        },
+
+        /**
+         * list server privileges
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server privileges
+         */
+        privileges: {
+            rest: {
+                method: "GET",
+                path: "/:id/privileges",
+            },
+            permissions: ['mongodb.servers.privileges'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await ctx.call("v1.mongodb.servers.resolve", params);
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", { id: params.id });
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server privileges
+                const privileges = await client.db("admin").command({ privilegesInfo: 1 });
+
+                return privileges;
+            }
+        },
+
+        /**
+         * list server commands
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server commands
+         */
+        commands: {
+            rest: {
+                method: "GET",
+                path: "/:id/commands",
+            },
+            permissions: ['mongodb.servers.commands'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await ctx.call("v1.mongodb.servers.resolve", params);
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", { id: params.id });
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server commands
+                const commands = await client.db("admin").command({ listCommands: 1 });
+
+                return commands;
+            }
+        },
+
+        /**
+         * list server features
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server features
+         */
+        features: {
+            rest: {
+                method: "GET",
+                path: "/:id/features",
+            },
+            permissions: ['mongodb.servers.features'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await ctx.call("v1.mongodb.servers.resolve", params);
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", { id: params.id });
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server features
+                const features = await client.db("admin").command({ features: 1 });
+
+                return features;
+            }
+        },
+
+        /**
+         * list server logs
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * @param {Object} filter - mongodb server logs filter
+         * 
+         * @returns {Object} server logs
+         */
+        logs: {
+            rest: {
+                method: "GET",
+                path: "/:id/logs",
+            },
+            permissions: ['mongodb.servers.logs'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                },
+                filter: {
+                    type: "object",
+                    optional: true,
+                    description: "mongodb server logs filter",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server logs
+                const logs = await client.db("admin").command({ getLog: "global" });
+
+                return logs;
+            }
+        },
+
+        /**
+         * list server connections
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server connections
+         */
+        connections: {
+            rest: {
+                method: "GET",
+                path: "/:id/connections",
+            },
+            permissions: ['mongodb.servers.connections'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server connections
+                const connections = await client.db("admin").command({ currentOp: 1 });
+
+                return connections;
+            }
+        },
+
+        /**
+         * drop server connection
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * @param {String} host - mongodb client host
+         * @param {String} port - mongodb client port
+         * 
+         * @returns {Object} server connections
+         */
+        dropConnection: {
+            rest: {
+                method: "DELETE",
+                path: "/:id/connections/:host/:port",
+            },
+            permissions: ['mongodb.servers.dropConnection'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                },
+                host: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb client host",
+                },
+                port: {
+                    type: "number",
+                    min: 1,
+                    max: 65535,
+                    optional: false,
+                    description: "mongodb client port",
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server connections
+                const connections = await client.db("admin").command({
+                    dropConnections: 1,
+                    hostAndPort: [`${params.host}:${params.port}`]
+                });
+
+                return connections;
             }
         },
 

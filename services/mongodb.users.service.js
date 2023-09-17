@@ -309,6 +309,198 @@ module.exports = {
                 return user;
             }
         },
+
+        /**
+         * grant mongodb user roles
+         * 
+         * @actions
+         * @param {String} id - mongodb user id
+         * @param {Array} roles - mongodb user roles
+         * 
+         * @returns {Object} mongodb user
+         */
+        grantRoles: {
+            rest: {
+                method: "POST",
+                path: "/:id/grantRoles",
+            },
+            permissions: ['mongodb.users.grantRoles'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb user id",
+                },
+                roles: {
+                    type: "array",
+                    items: "string",
+                    optional: false,
+                    description: "mongodb user roles",
+                    enum: [
+                        "read",
+                        "readWrite",
+                        "dbAdmin",
+                        "dbOwner",
+                        "userAdmin",
+                        "clusterAdmin",
+                        "clusterManager",
+                        "clusterMonitor",
+                        "hostManager",
+                        "backup",
+                        "restore",
+                        "readAnyDatabase",
+                        "readWriteAnyDatabase",
+                        "userAdminAnyDatabase",
+                        "dbAdminAnyDatabase",
+                        "root",
+                        "dbOwner",
+                        "restore",
+                        "backup",
+                        "readWrite",
+                        "read",
+                        "readWriteAnyDatabase",
+                        "readAnyDatabase",
+                        "userAdminAnyDatabase",
+                        "dbAdminAnyDatabase",
+                        "clusterAdmin",
+                        "clusterManager",
+                        "clusterMonitor",
+                        "hostManager"
+                    ],
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get mongodb user
+                let user = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                // check if mongodb user exists
+                if (!user) {
+                    throw new MoleculerClientError("mongodb user not found", 404);
+                }
+
+                // update user roles
+                user = await this.updateEntity(null, {
+                    id: params.id,
+                    roles: user.roles.concat(params.roles)
+                });
+
+                // loop over db servers and get user info
+                for (const id of user.databases) {
+
+                    // resolve server object
+                    const database = await ctx.call('v1.mongodb.databases.resolve', {
+                        id: id,
+                        populate: ['server']
+                    });
+
+                    await this.grantRoles(ctx, user, database.server, database, params.roles);
+                }
+
+                // return mongodb user
+                return user;
+            }
+        },
+
+        /**
+         * revoke mongodb user roles
+         * 
+         * @actions
+         * @param {String} id - mongodb user id
+         * @param {Array} roles - mongodb user roles
+         * 
+         * @returns {Object} mongodb user
+         */
+        revokeRoles: {
+            rest: {
+                method: "POST",
+                path: "/:id/revokeRoles",
+            },
+            permissions: ['mongodb.users.revokeRoles'],
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb user id",
+                },
+                roles: {
+                    type: "array",
+                    items: "string",
+                    optional: false,
+                    description: "mongodb user roles",
+                    enum: [
+                        "read",
+                        "readWrite",
+                        "dbAdmin",
+                        "dbOwner",
+                        "userAdmin",
+                        "clusterAdmin",
+                        "clusterManager",
+                        "clusterMonitor",
+                        "hostManager",
+                        "backup",
+                        "restore",
+                        "readAnyDatabase",
+                        "readWriteAnyDatabase",
+                        "userAdminAnyDatabase",
+                        "dbAdminAnyDatabase",
+                        "root",
+                        "dbOwner",
+                        "restore",
+                        "backup",
+                        "readWrite",
+                        "read",
+                        "readWriteAnyDatabase",
+                        "readAnyDatabase",
+                        "userAdminAnyDatabase",
+                        "dbAdminAnyDatabase",
+                        "clusterAdmin",
+                        "clusterManager",
+                        "clusterMonitor",
+                        "hostManager"
+                    ],
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get mongodb user
+                let user = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                // check if mongodb user exists
+                if (!user) {
+                    throw new MoleculerClientError("mongodb user not found", 404);
+                }
+
+                // update user roles
+                user = await this.updateEntity(null, {
+                    id: params.id,
+                    roles: user.roles.filter((role) => {
+                        return !params.roles.includes(role);
+                    })
+                });
+
+                // loop over db servers and get user info
+                for (const id of user.databases) {
+
+                    // resolve server object
+                    const database = await ctx.call('v1.mongodb.databases.resolve', {
+                        id: id,
+                        populate: ['server']
+                    });
+
+                    await this.revokeRoles(ctx, user, database.server, database, params.roles);
+                }
+
+                // return mongodb user
+                return user;
+            }
+        },
     },
 
     /**
@@ -459,6 +651,72 @@ module.exports = {
 
             // return mongodb user
             return dbUser.users[0];
+        },
+
+        /**
+         * grant mongodb user roles
+         * 
+         * @param {Object} ctx - context of the request
+         * @param {Object} user - mongodb user
+         * @param {Object} server - mongodb server
+         * @param {Object} database - mongodb database
+         * @params {Array} roles - mongodb user roles
+         * 
+         * @returns {Object} mongodb user
+         */
+        async grantRoles(ctx, user, server, database, roles) {
+            // get mongodb client
+            const client = await this.getClient(ctx, server);
+
+            // get mongodb database
+            const db = client.db('admin');
+
+            // grant roles
+            const result = await db.command({
+                grantRolesToUser: user.name,
+                roles: roles.map((role) => {
+                    return {
+                        role: role,
+                        db: database.name
+                    }
+                }),
+            });
+
+            // return mongodb user
+            return result;
+        },
+
+        /**
+         * revoke mongodb user roles
+         * 
+         * @param {Object} ctx - context of the request
+         * @param {Object} user - mongodb user
+         * @param {Object} server - mongodb server
+         * @param {Object} database - mongodb database
+         * @params {Array} roles - mongodb user roles
+         * 
+         * @returns {Object} mongodb user
+         */
+        async revokeRoles(ctx, user, server, database, roles) {
+            // get mongodb client
+            const client = await this.getClient(ctx, server);
+
+            // get mongodb database
+            const db = client.db('admin');
+
+            // revoke roles
+            const result = await db.command({
+                revokeRolesFromUser: user.name,
+                roles: roles.map((role) => {
+                    return {
+                        role: role,
+                        db: database.name
+                    }
+                }),
+            });
+
+            // return mongodb user
+            return result;
         },
     },
 
