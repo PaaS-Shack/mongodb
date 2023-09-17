@@ -126,10 +126,13 @@ module.exports = {
             async handler(ctx) {
                 const params = Object.assign({}, ctx.params);
                 // get server
-                const server = await this.resolve(ctx, params.id);
+                const database = await this.resolveEntities(null, {
+                    id: params.id,
+                    populate: ["server"],
+                });
 
                 // get client
-                const client = await this.getClient(ctx, server);
+                const client = await this.getClient(ctx, database.server);
 
                 // get collection stats
                 const stats = await client.db("admin").command({
@@ -186,7 +189,7 @@ module.exports = {
                 const database = await this.resolveEntities(null, {
                     id: params.id,
                     populate: ["server"],
-                })
+                });
 
                 // get client
                 const client = await this.getClient(ctx, database.server);
