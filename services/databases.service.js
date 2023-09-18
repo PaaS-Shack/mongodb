@@ -460,7 +460,7 @@ module.exports = {
                 const result = await client.db(database.name).dropDatabase()
                     .catch((error) => {
                         this.logger.error(error);
-                    });;
+                    });
 
                 return this.removeEntity(ctx, {
                     id: params.id,
