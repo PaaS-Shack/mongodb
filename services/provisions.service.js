@@ -70,11 +70,16 @@ module.exports = {
             ...Membership.SCOPE,
         },
 
-        defaultScopes: [...DbService.DSCOPE, ...Membership.DSCOPE],
+        defaultScopes: [
+            ...DbService.DSCOPE,
+            ...Membership.DSCOPE
+        ],
 
         // default init config settings
         config: {
-
+            'mongodb.provision.roles': [
+                'readWrite',
+            ],
         }
     },
 
@@ -122,22 +127,21 @@ module.exports = {
                     server: server.id,
                 });
 
+                // generate the user name and password
                 const userName = this.generatePrefixName(params);
                 const userPassword = generator.generate({
                     length: 10,
                     numbers: true
                 });
+
+                const roles = this.config['mongodb.provision.roles'];
                 // create the user
                 const user = await ctx.call('v1.mongodb.users.create', {
                     name: userName,
                     password: userPassword,
-                    roles: [
-                        'readWrite',
-
-                    ],
+                    roles: roles,
                     databases: [database.id],
                 });
-
 
                 // create the provision
                 const provision = await this.createEntity(ctx, {
@@ -147,8 +151,10 @@ module.exports = {
 
                 await ctx.call('v1.mongodb.users.createNotFound', {
                     id: user.id
-                })
+                });
+
                 this.logger.info(`provisioned mongodb user ${user.name} and database ${database.name}`);
+
                 // return provision id
                 return provision.id;
             }
