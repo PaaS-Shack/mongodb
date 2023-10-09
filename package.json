@@ -27,7 +27,7 @@
   "dependencies": {
     "config-mixin": "git+https://github.com/PaaS-Shack/config-mixin.git",
     "cron-mixin": "git+https://github.com/PaaS-Shack/cron-mixin.git",
-    "db-mixin": "git+https://github.com/PaaS-Shack/db-mixin.git",
+    "db-mixin": "git+https://github.com/PaaS-Shack/db-mixin.git#6c6bb9bf6586054602901136cba9bbba1d0fdde0",
     "generate-password": "^1.7.0",
     "membership-mixin": "git+https://github.com/PaaS-Shack/membership-mixin.git",
     "middlewares": "git+https://github.com/PaaS-Shack/middlewares.git",
