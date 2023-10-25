@@ -46,7 +46,7 @@ module.exports = {
                 type: "string",
                 optional: true,
                 populate: {
-                    action: "v1.mongodb.databases.get",
+                    action: "v1.mongodb.databases.resolve",
                 },
             },
 
@@ -54,7 +54,7 @@ module.exports = {
                 type: "string",
                 optional: true,
                 populate: {
-                    action: "v1.mongodb.users.get",
+                    action: "v1.mongodb.users.resolve",
                 },
             },
 
