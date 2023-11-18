@@ -45,13 +45,9 @@ module.exports = {
             name: {
                 type: "string",
                 required: true,
-                //unique: true,
                 min: 3,
                 max: 50,
                 trim: true,
-                lowercase: true,
-                index: true,
-                searchable: true,
                 description: "mongodb server name"
             },
 
@@ -59,12 +55,7 @@ module.exports = {
             host: {
                 type: "string",
                 required: true,
-                min: 3,
-                max: 50,
                 trim: true,
-                lowercase: true,
-                index: true,
-                searchable: true,
                 description: "mongodb server host"
             },
 
@@ -81,12 +72,7 @@ module.exports = {
             url: {
                 type: "string",
                 required: false,
-                min: 3,
-                max: 50,
                 trim: true,
-                lowercase: true,
-                index: true,
-                searchable: true,
                 description: "mongodb server url"
             },
 
@@ -189,7 +175,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/build",
             },
-            permissions: ['mongodb.servers.build'],
             params: {
                 id: {
                     type: "string",
@@ -224,7 +209,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/status",
             },
-            permissions: ['mongodb.servers.status'],
             params: {
                 id: {
                     type: "string",
@@ -266,7 +250,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/databases",
             },
-            permissions: ['mongodb.servers.databases'],
             params: {
                 id: {
                     type: "string",
@@ -309,7 +292,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/databases/:database/collections",
             },
-            permissions: ['mongodb.servers.collections'],
             params: {
                 id: {
                     type: "string",
@@ -356,7 +338,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/users",
             },
-            permissions: ['mongodb.servers.users'],
             params: {
                 id: {
                     type: "string",
@@ -398,7 +379,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/roles",
             },
-            permissions: ['mongodb.servers.roles'],
             params: {
                 id: {
                     type: "string",
@@ -440,7 +420,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/privileges",
             },
-            permissions: ['mongodb.servers.privileges'],
             params: {
                 id: {
                     type: "string",
@@ -482,7 +461,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/commands",
             },
-            permissions: ['mongodb.servers.commands'],
             params: {
                 id: {
                     type: "string",
@@ -524,7 +502,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/features",
             },
-            permissions: ['mongodb.servers.features'],
             params: {
                 id: {
                     type: "string",
@@ -567,7 +544,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/logs",
             },
-            permissions: ['mongodb.servers.logs'],
             params: {
                 id: {
                     type: "string",
@@ -616,7 +592,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/connections",
             },
-            permissions: ['mongodb.servers.connections'],
             params: {
                 id: {
                     type: "string",
@@ -662,7 +637,6 @@ module.exports = {
                 method: "DELETE",
                 path: "/:id/connections/:host/:port",
             },
-            permissions: ['mongodb.servers.dropConnection'],
             params: {
                 id: {
                     type: "string",

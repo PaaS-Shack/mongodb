@@ -45,13 +45,9 @@ module.exports = {
             name: {
                 type: "string",
                 required: true,
-                //unique: true,
                 min: 3,
                 max: 50,
                 trim: true,
-                lowercase: true,
-                index: true,
-                searchable: true,
                 description: "mongodb user name"
             },
 
@@ -171,9 +167,6 @@ module.exports = {
                 }
             },
 
-
-
-
             ...DbService.FIELDS,// inject dbservice fields
         },
         defaultPopulates: [],
@@ -209,7 +202,6 @@ module.exports = {
                 method: "GET",
                 path: "/:id/info",
             },
-            permissions: ['mongodb.users.info'],
             params: {
                 id: {
                     type: "string",
@@ -265,7 +257,6 @@ module.exports = {
                 method: "POST",
                 path: "/:id/createNotFound",
             },
-            permissions: ['mongodb.users.createNotFound'],
             params: {
                 id: {
                     type: "string",
@@ -299,7 +290,7 @@ module.exports = {
                     const info = await this.getUserInfo(ctx, user, database.server, database);
 
                     if (info) {
-                        this.updateUser(ctx, user, database.server, database);
+                        await this.updateUser(ctx, user, database.server, database);
                     } else {
                         await this.createUser(ctx, user, database.server, database);
                     }
@@ -324,7 +315,6 @@ module.exports = {
                 method: "POST",
                 path: "/:id/drop",
             },
-            permissions: ['mongodb.users.drop'],
             params: {
                 id: {
                     type: "string",
@@ -383,7 +373,6 @@ module.exports = {
                 method: "POST",
                 path: "/:id/grantRoles",
             },
-            permissions: ['mongodb.users.grantRoles'],
             params: {
                 id: {
                     type: "string",
@@ -480,7 +469,6 @@ module.exports = {
                 method: "POST",
                 path: "/:id/revokeRoles",
             },
-            permissions: ['mongodb.users.revokeRoles'],
             params: {
                 id: {
                     type: "string",
@@ -558,7 +546,7 @@ module.exports = {
                     await this.revokeRoles(ctx, user, database.server, database, params.roles);
                 }
 
-this.logger.info(`revoked mongodb user ${user.name} roles ${params.roles}`);
+                this.logger.info(`revoked mongodb user ${user.name} roles ${params.roles}`);
 
                 // return mongodb user
                 return user;
@@ -623,7 +611,7 @@ this.logger.info(`revoked mongodb user ${user.name} roles ${params.roles}`);
             // get mongodb user
             const dbUser = await this.getUserInfo(ctx, user, server, database);
 
-this.logger.info(`Mongodb command createUser ${user.name}`);
+            this.logger.info(`Mongodb command createUser ${user.name}`);
 
             // return mongodb user
             return dbUser;
@@ -662,7 +650,7 @@ this.logger.info(`Mongodb command createUser ${user.name}`);
             // get mongodb user
             const dbUser = await this.getUserInfo(ctx, user, server, database);
 
-this.logger.info(`Mongodb command updateUser ${user.name}`);
+            this.logger.info(`Mongodb command updateUser ${user.name}`);
 
             // return mongodb user
             return dbUser;
@@ -690,7 +678,7 @@ this.logger.info(`Mongodb command updateUser ${user.name}`);
                 dropUser: user.name,
             });
 
-this.logger.info(`Mongodb command dropUser ${user.name}`);
+            this.logger.info(`Mongodb command dropUser ${user.name}`);
 
             // return mongodb user
             return result;

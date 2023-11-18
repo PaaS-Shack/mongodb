@@ -21,13 +21,13 @@ const ClientEvents = [
 module.exports = {
     methods: {
         /**
-                 * create mongodb client
-                 * 
-                 * @param {Object} ctx - context of the request
-                 * @param {Object} server - mongodb server
-                 * 
-                 * @returns {Object} mongodb client
-                 */
+         * create mongodb client
+         * 
+         * @param {Object} ctx - context of the request
+         * @param {Object} server - mongodb server
+         * 
+         * @returns {Object} mongodb client
+         */
         async createClient(ctx, server) {
 
             // check if client already exists

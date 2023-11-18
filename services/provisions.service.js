@@ -105,7 +105,6 @@ module.exports = {
          */
         provision: {
             rest: "POST /",
-            permissions: ['mongodb.provisions.provision'],
             params: {
                 zone: { type: "string", optional: true },
                 prefix: { type: "string", default: 'provision', optional: true },
@@ -170,7 +169,6 @@ module.exports = {
          */
         pack: {
             rest: "GET /:id/pack",
-            permissions: ['mongodb.provisions.pack'],
             params: {
                 id: { type: "string" },
             },
@@ -214,7 +212,6 @@ module.exports = {
                 method: "DELETE",
                 path: "/:id"
             },
-            permissions: ['mongodb.provisions.deprovision'],
             params: {
                 id: { type: "string" },
             },
