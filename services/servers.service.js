@@ -51,6 +51,14 @@ module.exports = {
                 description: "mongodb server name"
             },
 
+            // server enabled
+            enabled: {
+                type: "boolean",
+                required: false,
+                default: false,
+                description: "mongodb server enabled"
+            },
+
             // mongodb server host
             host: {
                 type: "string",
@@ -121,6 +129,106 @@ module.exports = {
 
     actions: {
         /**
+         * enable server
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server - the server object
+         */
+        enable: {
+            rest: {
+                method: "PUT",
+                path: "/:id/enable",
+            },
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                let server = await this.resolveEntities(null, {
+                    id: params.id,
+                });
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // check if server is already enabled
+                if (server.enabled) {
+                    throw new MoleculerClientError("Server already enabled", 422, "SERVER_ALREADY_ENABLED", params);
+                }
+
+                // enable server
+                server = await this.updateEntity(null, {
+                    id: server.id,
+                    enabled: true,
+                });
+
+                this.logger.info(`enabled mongodb server ${server.id}`);
+
+                return server;
+            }
+        },
+
+        /**
+         * disable server
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server - the server object
+         */
+        disable: {
+            rest: {
+                method: "PUT",
+                path: "/:id/disable",
+            },
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                }
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                let server = await this.resolveEntities(null, {
+                    id: params.id,
+                });
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // check if server is already disabled
+                if (!server.enabled) {
+                    throw new MoleculerClientError("Server already disabled", 422, "SERVER_ALREADY_DISABLED", params);
+                }
+
+                // disable server
+                server = await this.updateEntity(null, {
+                    id: server.id,
+                    enabled: false,
+                });
+
+                this.logger.info(`disabled mongodb server ${server.id}`);
+
+                return server;
+            }
+        },
+
+        /**
          * loopup server for zone 
          * 
          * @actions
@@ -144,13 +252,18 @@ module.exports = {
                 let server = await this.findEntity(null, {
                     query: {
                         zone: params.zone,
+                        enabled: true,
                     }
                 });
 
                 // lookup any server if not found
                 if (!server) {
                     this.logger.warn(`no server found for zone ${params.zone}, looking up any server`);
-                    server = await this.findEntity(null, {});
+                    server = await this.findEntity(null, {
+                        query: {
+                            enabled: true,
+                        }
+                    });
                 }
 
                 //check if server exists
