@@ -29,9 +29,7 @@ module.exports = {
     /**
      * Service dependencies
      */
-    dependencies: [
-
-    ],
+    dependencies: [],
 
     /**
      * Service settings
@@ -100,8 +98,6 @@ module.exports = {
                 required: true,
                 description: "mongodb server zone",
             },
-
-
 
             ...DbService.FIELDS,// inject dbservice fields
         },
@@ -794,6 +790,94 @@ module.exports = {
                 this.logger.info(`dropped mongodb server ${server.id} connection ${params.host}:${params.port}`);
 
                 return connections;
+            }
+        },
+
+        /**
+         * list server replica sets
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server replica sets
+         */
+        replicaSets: {
+            rest: {
+                method: "GET",
+                path: "/:id/replica-sets",
+            },
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // get server replica sets
+                const replicaSets = await client.db("admin").command({ replSetGetStatus: 1 });
+
+                return replicaSets;
+            }
+        },
+
+        /**
+         * step down server replica set
+         * 
+         * @actions
+         * @param {String} id - mongodb server id
+         * 
+         * @returns {Object} server replica sets
+         */
+        stepDown: {
+            rest: {
+                method: "POST",
+                path: "/:id/step-down",
+            },
+            params: {
+                id: {
+                    type: "string",
+                    optional: false,
+                    description: "mongodb server id",
+                },
+            },
+            async handler(ctx) {
+                const params = Object.assign({}, ctx.params);
+
+                // get server
+                const server = await this.resolveEntities(null, {
+                    id: params.id,
+                })
+
+                //check if server exists
+                if (!server) {
+                    throw new MoleculerClientError("Server not found", 404, "SERVER_NOT_FOUND", params);
+                }
+
+                // get client
+                const client = await this.getClient(ctx, server);
+
+                // step down server replica set
+                const stepDown = await client.db("admin").command({ replSetStepDown: 60 });
+
+                this.logger.info(`step down mongodb server ${server.id} replica set`);
+
+                return stepDown;
             }
         },
 
