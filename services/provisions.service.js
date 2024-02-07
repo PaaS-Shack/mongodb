@@ -193,8 +193,8 @@ module.exports = {
                     MONGO_PASSWORD: provision.user.password,
                     MONGO_DATABASE: provision.database.name,
                     MONGO_HOST: server.host,
-                    MONGO_PORT: server.port,
-                    MONGO_URI: `mongodb://${provision.user.name}:${provision.user.password}@${server.host}:${server.port}/${provision.database.name}?authSrouce=admin`
+                    MONGO_PORT: `${server.port}`,
+                    MONGO_URI: `mongodb://${provision.user.name}:${provision.user.password}@${server.host}:${server.port}/${provision.database.name}`
                 };
             }
         },
